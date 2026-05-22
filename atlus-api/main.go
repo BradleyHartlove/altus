@@ -1,9 +1,11 @@
 package main
 
 import (
+	"net/http"
+
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"net/http"
 )
 
 type Parishioner struct {
@@ -18,6 +20,13 @@ type Parishioner struct {
 
 func main() {
 	router := gin.Default()
+	router.SetTrustedProxies(nil)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type"},
+		AllowCredentials: false,
+	}))
 	router.GET("/health", healthCheck)
 	router.GET("/parishioners", getParishioners)
 	router.GET("/parishioners/:id", getParishionerByID)

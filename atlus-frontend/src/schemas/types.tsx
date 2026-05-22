@@ -7,3 +7,8 @@ export interface Parishioner {
     is_registered: boolean
     members: number
 }
+
+export const ParishionerStatus = {
+    Active: "Active",
+    Inactive: "Inactive"
+}

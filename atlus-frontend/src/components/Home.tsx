@@ -2,12 +2,9 @@ import type { Parishioner } from '@/schemas/types';
 import { ParishionerTable } from './ParishionerTable'
 import { useQuery } from '@tanstack/react-query';
 import { AddModal } from './AddModal';
-// import { useState } from 'react';
+import { API_BASE } from '@/lib/constants';
 
 const Home = () => {
-    // const [showAddModal, setShowAddModal] = useState(false);
-    const API_BASE = "http://localhost:8080"
-
     async function fetchParishioners(): Promise<Parishioner[]> {
         const res = await fetch(`${API_BASE}/parishioners`, {
             signal: AbortSignal.timeout(5000)

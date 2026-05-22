@@ -18,6 +18,13 @@ type Parishioner struct {
 	Members      int    `json:"members" binding:"required,gte=1"`
 }
 
+type ParishionerStatus string
+
+const (
+	Active   ParishionerStatus = "Active"
+	Inactive ParishionerStatus = "Inactive"
+)
+
 func main() {
 	router := gin.Default()
 	router.SetTrustedProxies(nil)
@@ -37,8 +44,8 @@ func main() {
 }
 
 var parishioners = []Parishioner{
-	{ID: uuid.NewString(), Name: "John Doe", City: "New York", Status: "active", IsRegistered: new(true), Members: 5, Email: "john.doe@gmail.com"},
-	{ID: uuid.NewString(), Name: "Jane Smith", City: "Los Angeles", Status: "inactive", IsRegistered: new(false), Members: 3, Email: "jane.smith@yahoo.mail"},
+	{ID: uuid.NewString(), Name: "John Doe", City: "New York", Status: string(Active), IsRegistered: new(true), Members: 5, Email: "john.doe@gmail.com"},
+	{ID: uuid.NewString(), Name: "Jane Smith", City: "Los Angeles", Status: string(Inactive), IsRegistered: new(false), Members: 3, Email: "jane.smith@yahoo.mail"},
 }
 
 // Health check endpoint to verify that the API is running

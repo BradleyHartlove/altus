@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"net/http"
 )
 
@@ -27,12 +28,8 @@ func main() {
 }
 
 var parishioners = []Parishioner{
-	{ID: "1", Name: "John Doe", City: "New York", Status: "active", IsRegistered: ptrBool(true), Members: 5, Email: "john.doe@gmail.com"},
-	{ID: "2", Name: "Jane Smith", City: "Los Angeles", Status: "inactive", IsRegistered: ptrBool(false), Members: 3, Email: "jane.smith@yahoo.mail"},
-}
-
-func ptrBool(b bool) *bool {
-	return &b
+	{ID: uuid.NewString(), Name: "John Doe", City: "New York", Status: "active", IsRegistered: new(true), Members: 5, Email: "john.doe@gmail.com"},
+	{ID: uuid.NewString(), Name: "Jane Smith", City: "Los Angeles", Status: "inactive", IsRegistered: new(false), Members: 3, Email: "jane.smith@yahoo.mail"},
 }
 
 // Health check endpoint to verify that the API is running
@@ -69,6 +66,7 @@ func createParishioner(c *gin.Context) {
 		return
 	}
 
+	newParishioner.ID = uuid.NewString()
 	parishioners = append(parishioners, newParishioner)
 	c.IndentedJSON(http.StatusCreated, newParishioner)
 }

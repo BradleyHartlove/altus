@@ -19,7 +19,6 @@ interface DeleteModalProps {
 }
 
 export function DeleteModal({ parishioner, show, setCallback }: DeleteModalProps) {
-    // const [open, setOpen] = useState(false)
     const queryClient = useQueryClient()
 
     async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {

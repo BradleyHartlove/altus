@@ -30,7 +30,7 @@ func main() {
 	router.SetTrustedProxies(nil)
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
 		AllowCredentials: false,
 	}))
@@ -38,6 +38,7 @@ func main() {
 	router.GET("/parishioners", getParishioners)
 	router.GET("/parishioners/:id", getParishionerByID)
 	router.POST("/parishioners", createParishioner)
+	router.PUT("/parishioners/:id", updateParishionerByID)
 	router.DELETE("/parishioners/:id", deleteParishionerByID)
 
 	router.Run()
@@ -85,6 +86,27 @@ func createParishioner(c *gin.Context) {
 	newParishioner.ID = uuid.NewString()
 	parishioners = append(parishioners, newParishioner)
 	c.IndentedJSON(http.StatusCreated, newParishioner)
+}
+
+// Update a parishioner
+func updateParishionerByID(c *gin.Context) {
+	id := c.Param("id")
+	var updatedParishioner Parishioner
+
+	if err := c.BindJSON(&updatedParishioner); err != nil {
+		return
+	}
+
+	updatedParishioner.ID = uuid.NewString()
+
+	for i, p := range parishioners {
+		if p.ID == id {
+			parishioners[i] = updatedParishioner
+			c.IndentedJSON(http.StatusOK, updatedParishioner)
+			return
+		}
+	}
+	c.JSON(http.StatusNotFound, gin.H{"message": "Parishioner not found"})
 }
 
 // Delete a parishioner by id

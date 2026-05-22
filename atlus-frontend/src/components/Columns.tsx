@@ -14,9 +14,11 @@ import { Button } from "@/components/ui/button"
 import { MoreHorizontal } from "lucide-react"
 import { DeleteModal } from "./DeleteModal"
 import { useState } from "react"
+import { EditModal } from "./EditModal"
 
 function ActionsCell({ parishioner }: { parishioner: Parishioner }) {
-    const [showModal, setShowModal] = useState(false)
+    const [showDeleteModal, setShowDeleteModal] = useState(false)
+    const [showEditModal, setShowEditModal] = useState(false)
 
     return (
         <div>
@@ -29,13 +31,16 @@ function ActionsCell({ parishioner }: { parishioner: Parishioner }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowModal(!showModal)}>
+                    <DropdownMenuItem onClick={() => setShowEditModal(!showDeleteModal)}>
+                        Edit Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowDeleteModal(!showDeleteModal)}>
                         Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
-            <DeleteModal parishioner={parishioner} show={showModal} setCallback={(open: boolean) => { setShowModal(open) }} />
+            <EditModal parishioner={parishioner} show={showEditModal} setCallback={(open: boolean) => { setShowEditModal(open) }} />
+            <DeleteModal parishioner={parishioner} show={showDeleteModal} setCallback={(open: boolean) => { setShowDeleteModal(open) }} />
         </div>
     )
 }

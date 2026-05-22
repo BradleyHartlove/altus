@@ -1,10 +1,11 @@
 import type { Parishioner } from '@/schemas/types';
 import { ParishionerTable } from './ParishionerTable'
 import { useQuery } from '@tanstack/react-query';
-import { Button } from "@/components/ui/button"
-
+import { AddModal } from './AddModal';
+// import { useState } from 'react';
 
 const Home = () => {
+    // const [showAddModal, setShowAddModal] = useState(false);
     const API_BASE = "http://localhost:8080"
 
     async function fetchParishioners(): Promise<Parishioner[]> {
@@ -21,20 +22,31 @@ const Home = () => {
         queryFn: fetchParishioners,
     })
 
-    if (isLoading) return <div className="flex justify-center items-center h-full"><p className="text-xl text-muted-foreground">Loading...</p></div>
-    if (error) return <div className="flex justify-center items-center h-full"><p className="text-xl text-destructive">Error: {error.message}</p></div>
+    if (isLoading) return (
+        <div className="flex justify-center items-center h-64">
+            <p className="text-base text-muted-foreground tracking-wide">Loading...</p>
+        </div>
+    )
+    if (error) return (
+        <div className="flex justify-center items-center h-64">
+            <p className="text-base text-destructive">Error: {error.message}</p>
+        </div>
+    )
 
     return (
-        <div className='border rounded-2xl p-5'>
-            <div className="flex flex-row items-center">
-                <h1>Family Explorer</h1>
-                <div className="ml-auto pb-2">
-                    <Button variant={'outline'} size="lg">
-                        Add Family
-                    </Button>
+        <div className='bg-card border border-border rounded-2xl shadow-sm overflow-hidden'>
+            <div className="flex flex-row items-center px-6 py-5 border-b border-border">
+                <div>
+                    <h1 className="text-xl font-semibold tracking-tight text-foreground">Family Explorer</h1>
+                    <p className="text-xs text-muted-foreground mt-0.5">Manage and view parishioner families</p>
+                </div>
+                <div className="ml-auto">
+                    <AddModal />
                 </div>
             </div>
-            <ParishionerTable data={parishioners ?? []} />
+            <div className="px-2">
+                <ParishionerTable data={parishioners ?? []} />
+            </div>
         </div>
     )
 }

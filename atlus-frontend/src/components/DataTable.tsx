@@ -7,7 +7,8 @@ import {
     getCoreRowModel,
     useReactTable,
     getSortedRowModel,
-    getPaginationRowModel
+    getPaginationRowModel,
+    getFilteredRowModel
 } from "@tanstack/react-table"
 
 import {
@@ -19,6 +20,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Input } from "./ui/input"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
@@ -30,6 +32,8 @@ export function DataTable<TData, TValue>({
     data,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
+    const [globalFilter, setGlobalFilter] = React.useState<any>();
+
     const table = useReactTable({
         data,
         columns,
@@ -37,8 +41,11 @@ export function DataTable<TData, TValue>({
         getPaginationRowModel: getPaginationRowModel(),
         onSortingChange: setSorting,
         getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        globalFilterFn: 'includesString',
         state: {
             sorting,
+            globalFilter
         },
         initialState: {
             pagination: {
@@ -49,6 +56,16 @@ export function DataTable<TData, TValue>({
 
     return (
         <div>
+            <div className="flex items-center pb-3">
+                <Input
+                    placeholder="Filter..."
+                    // value=""
+                    onChange={(event) =>
+                        setGlobalFilter(String(event.target.value))
+                    }
+                    className="max-w-sm"
+                />
+            </div>
             <div className="overflow-hidden rounded-md border">
                 <Table>
                     <TableHeader>

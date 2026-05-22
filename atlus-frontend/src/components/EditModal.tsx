@@ -10,7 +10,7 @@ import {
     DialogTitle
 } from "@/components/ui/dialog"
 import { API_BASE } from '@/lib/constants';
-import { ParishionerStatus, type Parishioner } from "@/schemas/types";
+import { type Parishioner } from "@/schemas/types";
 import { Separator } from '@/components/ui/separator';
 import { Field, FieldGroup, FieldLabel } from "./ui/field";
 import { Input } from "./ui/input";
@@ -43,7 +43,6 @@ export function EditModal({ parishioner, show, setCallback }: DeleteModalProps) 
             city: data.get("city") as string,
             email: data.get("email") as string,
             members: parseInt(data.get("members") as string, 10),
-            status: ParishionerStatus.Active,
             is_registered: isRegistered,
         }
 
@@ -55,8 +54,6 @@ export function EditModal({ parishioner, show, setCallback }: DeleteModalProps) 
 
         if (response.ok) {
             form.reset()
-            // setIsRegistered(false)
-            // setOpen(false)
             setCallback(false)
             await queryClient.invalidateQueries({ queryKey: ["parishioners"] })
         }

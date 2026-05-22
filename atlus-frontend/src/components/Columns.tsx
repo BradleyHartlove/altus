@@ -15,6 +15,7 @@ import { MoreHorizontal } from "lucide-react"
 import { DeleteModal } from "./DeleteModal"
 import { useState } from "react"
 import { EditModal } from "./EditModal"
+import { ArrowUpDown } from "lucide-react"
 
 function ActionsCell({ parishioner }: { parishioner: Parishioner }) {
     const [showDeleteModal, setShowDeleteModal] = useState(false)
@@ -48,19 +49,60 @@ function ActionsCell({ parishioner }: { parishioner: Parishioner }) {
 export const columns: ColumnDef<Parishioner>[] = [
     {
         accessorKey: "name",
-        header: "Name",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Name
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
     },
     {
         accessorKey: "city",
-        header: "City",
-    },
-    {
-        accessorKey: "status",
-        header: "Status",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    City
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
     },
     {
         accessorKey: "email",
-        header: "Email",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Email
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+
+    },
+    {
+        accessorKey: "members",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Members
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
     },
     {
         accessorKey: "is_registered",
@@ -73,10 +115,6 @@ export const columns: ColumnDef<Parishioner>[] = [
                 {row.original.is_registered ? "Registered" : "Not registered"}
             </span>
         ),
-    },
-    {
-        accessorKey: "members",
-        header: "Members",
     },
     {
         id: "actions",

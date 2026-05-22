@@ -12,18 +12,10 @@ type Parishioner struct {
 	ID           string `json:"id,omitempty"`
 	Name         string `json:"name" binding:"required"`
 	City         string `json:"city" binding:"required"`
-	Status       string `json:"status" binding:"required"`
 	Email        string `json:"email" binding:"required"`
 	IsRegistered *bool  `json:"is_registered" binding:"required"`
 	Members      int    `json:"members" binding:"required,gte=1"`
 }
-
-type ParishionerStatus string
-
-const (
-	Active   ParishionerStatus = "Active"
-	Inactive ParishionerStatus = "Inactive"
-)
 
 func main() {
 	router := gin.Default()
@@ -45,8 +37,8 @@ func main() {
 }
 
 var parishioners = []Parishioner{
-	{ID: uuid.NewString(), Name: "John Doe", City: "New York", Status: string(Active), IsRegistered: new(true), Members: 5, Email: "john.doe@gmail.com"},
-	{ID: uuid.NewString(), Name: "Jane Smith", City: "Los Angeles", Status: string(Inactive), IsRegistered: new(false), Members: 3, Email: "jane.smith@yahoo.mail"},
+	{ID: uuid.NewString(), Name: "John Doe", City: "New York", IsRegistered: new(true), Members: 5, Email: "john.doe@gmail.com"},
+	{ID: uuid.NewString(), Name: "Jane Smith", City: "Los Angeles", IsRegistered: new(false), Members: 3, Email: "jane.smith@yahoo.mail"},
 }
 
 // Health check endpoint to verify that the API is running

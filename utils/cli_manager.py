@@ -47,30 +47,13 @@ exit --> Exit at any time!
 BASE_URL = "http://localhost:8080"
 
 
-'''
-type Parishioner struct {
-	ID           string `json:"id,omitempty"`
-	Name         string `json:"name" binding:"required"`
-	City         string `json:"city" binding:"required"`
-	Status       string `json:"status" binding:"required"`
-	Email        string `json:"email" binding:"required"`
-	IsRegistered *bool  `json:"is_registered" binding:"required"`
-	Members      int    `json:"members" binding:"required,gte=1"`
-}
-'''
 class Parishioner(BaseModel):
     id: Optional[str] = None
     name: str
     city: str
-    status: str
     email: str
     is_registered: bool
     members: int
-
-
-class ParishionerStatus(Enum):
-    ACTIVE = "Active"
-    INACTIVE = "Inactive"
 
 
 def _process_exit():
@@ -124,8 +107,7 @@ def _process_post():
             city=p_city,
             email=p_email,
             is_registered=p_is_registered in ["Y", "y"],
-            members=p_members,
-            status=ParishionerStatus.ACTIVE.value
+            members=p_members
         ) 
         response = requests.post(f"{BASE_URL}/parishioners", json=new_parishioner.model_dump())
         response.raise_for_status()

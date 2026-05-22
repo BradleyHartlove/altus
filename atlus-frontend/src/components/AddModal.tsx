@@ -15,7 +15,6 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { API_BASE } from '@/lib/constants';
-import { ParishionerStatus } from '@/schemas/types'
 import { Separator } from '@/components/ui/separator';
 
 
@@ -34,7 +33,6 @@ export function AddModal() {
             city: data.get("city") as string,
             email: data.get("email") as string,
             members: parseInt(data.get("members") as string, 10),
-            status: ParishionerStatus.Active,
             is_registered: isRegistered,
         }
 

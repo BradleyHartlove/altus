@@ -18,7 +18,7 @@ func NewServer(q *atlusdb.Queries) *Server {
 	}
 
 	s.router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost"},
 		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
 		AllowHeaders:     []string{"Origin", "Content-Type"},
 		AllowCredentials: false,

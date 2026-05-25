@@ -19,7 +19,15 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
       - ./atlus-api/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+  atlus-frontend:
+    container_name: atlus_frontend
+    build:
+      context: ./atlus-frontend
+      dockerfile: Dockerfile
     ports:
-      - "33060:3306"
+      - "80:80"
+    depends_on:
+      - atlus-api
+    restart: unless-stopped
 volumes:
   mysql-data:

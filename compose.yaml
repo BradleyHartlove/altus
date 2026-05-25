@@ -1,0 +1,25 @@
+services:
+  atlus-api:
+    container_name: atlus_api
+    build:
+      context: ./atlus-api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    restart: unless-stopped
+  db:
+    container_name: atlus_db
+    image: mysql:oraclelinux9
+    restart: always
+    env_file:
+      - .env
+    command: mysqld
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./atlus-api/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    ports:
+      - "33060:3306"
+volumes:
+  mysql-data:

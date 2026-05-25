@@ -1,44 +1,48 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"net/http"
+	"os"
 
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+
+	"atlus-api/atlusdb"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-type Parishioner struct {
-	ID           string `json:"id,omitempty"`
-	Name         string `json:"name" binding:"required"`
-	City         string `json:"city" binding:"required"`
-	Email        string `json:"email" binding:"required"`
-	IsRegistered *bool  `json:"is_registered" binding:"required"`
-	Members      int    `json:"members" binding:"required,gte=1"`
+func (s *Server) setupRoutes() {
+	s.router.GET("/health", healthCheck)
+	s.router.GET("/parishioners", s.getParishioners)
+	s.router.GET("/parishioners/:id", s.getParishionerByID)
+	s.router.POST("/parishioners", s.createParishioner)
+	s.router.DELETE("/parishioners/:id", s.deleteParishionerByID)
+	s.router.PUT("/parishioners/:id", s.updateParishionerByID)
 }
 
 func main() {
-	router := gin.Default()
-	router.SetTrustedProxies(nil)
-	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS", "PUT"},
-		AllowHeaders:     []string{"Origin", "Content-Type"},
-		AllowCredentials: false,
-	}))
-	router.GET("/health", healthCheck)
-	router.GET("/parishioners", getParishioners)
-	router.GET("/parishioners/:id", getParishionerByID)
-	router.POST("/parishioners", createParishioner)
-	router.PUT("/parishioners/:id", updateParishionerByID)
-	router.DELETE("/parishioners/:id", deleteParishionerByID)
+	dbName := os.Getenv("MYSQL_DATABASE")
+	dbUser := os.Getenv("MYSQL_USER")
+	dbPassword := os.Getenv("MYSQL_PASSWORD")
 
-	router.Run()
-}
+	dsn := fmt.Sprintf("%s:%s@tcp(db:3306)/%s?parseTime=true",
+		dbUser, dbPassword, dbName,
+	)
 
-var parishioners = []Parishioner{
-	{ID: uuid.NewString(), Name: "John Doe", City: "New York", IsRegistered: new(true), Members: 5, Email: "john.doe@gmail.com"},
-	{ID: uuid.NewString(), Name: "Jane Smith", City: "Los Angeles", IsRegistered: new(false), Members: 3, Email: "jane.smith@yahoo.mail"},
+	conn, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatal("cannot connect to mysql database:", err)
+	}
+
+	queries := atlusdb.New(conn)
+
+	server := NewServer(queries)
+	err = server.Start(":8080")
+	if err != nil {
+		log.Fatal("cannot start server:", err)
+	}
 }
 
 // Health check endpoint to verify that the API is running
@@ -49,67 +53,108 @@ func healthCheck(c *gin.Context) {
 }
 
 // Get all the parishioners
-func getParishioners(c *gin.Context) {
+func (s *Server) getParishioners(c *gin.Context) {
+
+	parishioners, err := s.queries.ListParishioners((c.Request.Context()))
+	if err != nil {
+		log.Printf("[!] Error: Unable to retrieve parishioners: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to retrieve parishioners"})
+		return
+	}
+
+	if parishioners == nil {
+		parishioners = []atlusdb.Parishioner{}
+	}
+
+	result := make([]ParishionerResponse, len(parishioners))
+	for i, p := range parishioners {
+		result[i] = parishionerDbSchemaConvert(p)
+	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"parishioners": parishioners,
+		"parishioners": result,
 	})
 }
 
 // Get a specific parishioner by ID
-func getParishionerByID(c *gin.Context) {
+func (s *Server) getParishionerByID(c *gin.Context) {
 	id := c.Param("id")
-	for _, p := range parishioners {
-		if p.ID == id {
-			c.JSON(http.StatusOK, p)
-			return
-		}
+
+	parishioner, err := s.queries.GetParishioner(c.Request.Context(), id)
+
+	if err != nil {
+		log.Printf("[!] Error: Unable to retrieve parishioner: %s", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Parishioner not found"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "Parishioner not found"})
+
+	c.JSON(http.StatusOK, parishionerDbSchemaConvert(parishioner))
 }
 
 // Create a new parishioner
-func createParishioner(c *gin.Context) {
-	var newParishioner Parishioner
+func (s *Server) createParishioner(c *gin.Context) {
+	var newParishioner CreateParishionerRequest
 
-	if err := c.BindJSON(&newParishioner); err != nil {
+	if bindErr := c.BindJSON(&newParishioner); bindErr != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Unable to create parishioner"})
 		return
 	}
 
-	newParishioner.ID = uuid.NewString()
-	parishioners = append(parishioners, newParishioner)
-	c.IndentedJSON(http.StatusCreated, newParishioner)
+	createdParishioner, err := s.queries.CreateParishioner(c.Request.Context(),
+		atlusdb.CreateParishionerParams{
+			Name:         newParishioner.Name,
+			City:         newParishioner.City,
+			Email:        newParishioner.Email,
+			IsRegistered: *newParishioner.IsRegistered,
+			Members:      int32(newParishioner.Members),
+		})
+
+	if err != nil {
+		log.Printf("[!] Error: Unable to create parishioner: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to create new parishioner"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, createdParishioner)
 }
 
 // Update a parishioner
-func updateParishionerByID(c *gin.Context) {
+func (s *Server) updateParishionerByID(c *gin.Context) {
 	id := c.Param("id")
-	var updatedParishioner Parishioner
+	var updatedParishioner CreateParishionerRequest
 
-	if err := c.BindJSON(&updatedParishioner); err != nil {
+	if bindErr := c.BindJSON(&updatedParishioner); bindErr != nil {
 		return
 	}
 
-	updatedParishioner.ID = uuid.NewString()
+	err := s.queries.UpdateParishioner(c.Request.Context(), atlusdb.UpdateParishionerParams{
+		Name:         updatedParishioner.Name,
+		City:         updatedParishioner.City,
+		Email:        updatedParishioner.Email,
+		IsRegistered: *updatedParishioner.IsRegistered,
+		Members:      int32(updatedParishioner.Members),
+		ID:           id,
+	})
 
-	for i, p := range parishioners {
-		if p.ID == id {
-			parishioners[i] = updatedParishioner
-			c.IndentedJSON(http.StatusOK, updatedParishioner)
-			return
-		}
+	if err != nil {
+		log.Printf("[!] Error: Unable to update parishioner: %s", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to update parishioner"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "Parishioner not found"})
+
+	c.JSON(http.StatusCreated, updatedParishioner)
 }
 
 // Delete a parishioner by id
-func deleteParishionerByID(c *gin.Context) {
+func (s *Server) deleteParishionerByID(c *gin.Context) {
 	id := c.Param("id")
-	for i, p := range parishioners {
-		if p.ID == id {
-			parishioners = append(parishioners[:i], parishioners[i+1:]...)
-			c.Status(http.StatusNoContent)
-			return
-		}
+	err := s.queries.DeleteParishioner(c.Request.Context(), id)
+
+	if err != nil {
+		log.Printf("[!] Error: Unable to create parishioner: %s", err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Unable to delete parishioner"})
+		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "Parishioner not found"})
+
+	c.Status(http.StatusNoContent)
 }

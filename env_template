@@ -1,0 +1,4 @@
+MYSQL_ROOT_PASSWORD=mystrongpassword
+MYSQL_USER=atlus
+MYSQL_PASSWORD=mystrongpassword
+MYSQL_DATABASE=atlus
